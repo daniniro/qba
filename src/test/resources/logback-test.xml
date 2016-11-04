@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="5 minutes" debug="false">
+<contextName>qba</contextName>
+<property name="applicationName" value="ibemailSenderWeb" />
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%date{dd MMM yyyy; HH:mm:ss.SSS;} [%logger{36}] [%method:%line] %-5level %X{username} %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="org.hibernate.SQL">
+		<level value="DEBUG" />
+		<appender-ref ref="CONSOLE" />
+	</logger>
+
+	<!-- START LOGBACK SECTION -->
+	<logger name="ch.qos.logback">
+		<level value="WARN" />
+		<appender-ref ref="CONSOLE" />
+	</logger>
+	<!-- END LOGBACK SECTION -->
+
+	<root level="DEBUG">
+		<appender-ref ref="CONSOLE" />
+	</root>
+
+</configuration>
