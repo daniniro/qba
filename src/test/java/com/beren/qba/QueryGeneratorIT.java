@@ -95,7 +95,7 @@ public class QueryGeneratorIT
   }
 
   @Test
-  public void whenStartsWithRestrictionSelectStartsWiht() throws Exception
+  public void whenStartsWithRestrictionSelectStartsWith() throws Exception
   {
     List<Mail> entities = givenEntities(3);
     Mail first = entities.get(0);
@@ -105,13 +105,65 @@ public class QueryGeneratorIT
   }
 
   @Test
-  public void whenEndsWithRestrictionSelectEndsWiht() throws Exception
+  public void whenEndsWithRestrictionSelectEndsWith() throws Exception
   {
     List<Mail> entities = givenEntities(3);
     Mail first = entities.get(0);
     MailSearchDTO dto = givenSearchBySubjectEndsWith(StringUtils.substringAfter(first.getSubject(), "-"));
     Predicate restrictions = whenAskForQuery(dto);
     thenAllEntitiesAreFound(restrictions, first);
+  }
+
+  @Test
+  public void whenContainsRestrictionSelectContains() throws Exception
+  {
+    List<Mail> entities = givenEntities(3);
+    Mail first = entities.get(0);
+    MailSearchDTO dto = givenSearchBySubjectContains(StringUtils.substringBetween(first.getSubject(), "-"));
+    Predicate restrictions = whenAskForQuery(dto);
+    thenAllEntitiesAreFound(restrictions, first);
+  }
+
+  @Test
+  public void whenIsRestrictionSelectExact() throws Exception
+  {
+    List<Mail> entities = givenEntities(3);
+    Mail first = entities.get(0);
+    MailSearchDTO dto = givenSearchById(first.getId());
+    Predicate restrictions = whenAskForQuery(dto);
+    thenAllEntitiesAreFound(restrictions, first);
+  }
+
+  @Test
+  public void whenOneOfRestrictionSelectIn() throws Exception
+  {
+    List<Mail> entities = givenEntities(3);
+    Mail first = entities.get(0);
+    Mail second = entities.get(1);
+    MailSearchDTO dto = givenSearchByIds(first.getId(), second.getId());
+    Predicate restrictions = whenAskForQuery(dto);
+    thenAllEntitiesAreFound(restrictions, first, second);
+  }
+
+  private MailSearchDTO givenSearchByIds(Long... ids)
+  {
+    MailSearchDTO dto = givenValidDTO();
+    dto.setIds(ids);
+    return dto;
+  }
+
+  private MailSearchDTO givenSearchById(Long id)
+  {
+    MailSearchDTO dto = givenValidDTO();
+    dto.setId(id);
+    return dto;
+  }
+
+  private MailSearchDTO givenSearchBySubjectContains(String subject)
+  {
+    MailSearchDTO dto = givenValidDTO();
+    dto.setSubjectContains(subject);
+    return dto;
   }
 
   private MailSearchDTO givenSearchBySubjectEndsWith(String subject)
@@ -168,13 +220,6 @@ public class QueryGeneratorIT
     return inserted;
   }
 
-  private Mail createRandomMail()
-  {
-    Mail randomEntity = new Mail(UUID.randomUUID().toString());
-    randomEntity.setSubject(UUID.randomUUID().toString());
-    return randomEntity;
-  }
-
   private Predicate whenAskForQuery(Object dto)
   {
     return queryGenerator.createQuery(dto, entityPath);
@@ -188,11 +233,11 @@ public class QueryGeneratorIT
     assertThat(query.fetch(), hasItems(entities));
   }
 
-  private void clearDB()
+  private Mail createRandomMail()
   {
-    entityManager.getTransaction().begin();
-    entityManager.createNativeQuery("delete from mail").executeUpdate();
-    entityManager.getTransaction().commit();
+    Mail randomEntity = new Mail(UUID.randomUUID().toString());
+    randomEntity.setSubject(UUID.randomUUID().toString());
+    return randomEntity;
   }
 
   private String changeCase(String text)
@@ -211,6 +256,13 @@ public class QueryGeneratorIT
       }
     }
     return new String(chars);
+  }
+
+  private void clearDB()
+  {
+    entityManager.getTransaction().begin();
+    entityManager.createNativeQuery("delete from mail").executeUpdate();
+    entityManager.getTransaction().commit();
   }
 
 }

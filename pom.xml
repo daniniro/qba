@@ -7,6 +7,21 @@
 	<version>1.0-SNAPSHOT</version>
 	<name>qba</name>
 	<url>http://maven.apache.org</url>
+
+	<properties>
+		<!-- =============================== -->
+		<!-- SOURCE AND OUTPUT COMPATIBILITY -->
+		<!-- =============================== -->
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+
+		<!-- ============= -->
+		<!-- FILE ENCODING -->
+		<!-- ============= -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<project.resource.encoding>UTF-8</project.resource.encoding>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
