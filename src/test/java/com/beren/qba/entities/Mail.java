@@ -22,10 +22,15 @@ public class Mail
 
   public Mail(String from)
   {
+	  this();
     this.from = from;
   }
 
-  @Id
+  protected Mail() {
+	  super();
+  }
+
+@Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "ID_MAIL")
   public Long getId()

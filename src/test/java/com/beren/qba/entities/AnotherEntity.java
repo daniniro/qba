@@ -5,14 +5,19 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "OTHERß")
+@Table(name = "OTHER")
 public class AnotherEntity
 {
   @Id
   private String id;
 
-  public AnotherEntity(String id)
+  protected AnotherEntity() {
+	super();
+}
+
+public AnotherEntity(String id)
   {
+	this();
     this.id = id;
   }
 }
