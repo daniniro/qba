@@ -1,4 +1,4 @@
-package com.beren.qba.dsl.expressionResolvers;
+package com.beren.qba.dsl.expressionResolvers.impl;
 
 import java.lang.reflect.Field;
 import java.time.temporal.Temporal;
@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.Optional;
 
 import com.beren.qba.annotations.QueryOneOf;
-import com.beren.qba.dsl.ExpressionResolver;
+import com.beren.qba.dsl.expressionResolvers.ExpressionResolver;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;

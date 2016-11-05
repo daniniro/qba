@@ -1,4 +1,4 @@
-package com.beren.qba.dsl;
+package com.beren.qba.dsl.expressionResolvers;
 
 import java.lang.reflect.Field;
 

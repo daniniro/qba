@@ -1,9 +1,9 @@
-package com.beren.qba.dsl.expressionResolvers;
+package com.beren.qba.dsl.expressionResolvers.impl;
 
 import java.lang.reflect.Field;
 
 import com.beren.qba.annotations.QueryIs;
-import com.beren.qba.dsl.ExpressionResolver;
+import com.beren.qba.dsl.expressionResolvers.ExpressionResolver;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.PathBuilder;
 
