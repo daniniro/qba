@@ -3,7 +3,7 @@ CREATE TABLE mail (
   sender varchar(256) NOT NULL,
 --  recipient varchar(256) NOT NULL,
 --  creation_date timestamp NULL DEFAULT CURRENT_TIMESTAMP,
---  mail_date timestamp NOT NULL,
+    mail_date timestamp NOT NULL,
     subject varchar(1024),
 --  pnr varchar(6),
 --  body TEXT,

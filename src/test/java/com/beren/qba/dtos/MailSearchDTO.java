@@ -2,11 +2,14 @@ package com.beren.qba.dtos;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 
 import com.beren.qba.annotations.QueryContains;
 import com.beren.qba.annotations.QueryEndsWith;
 import com.beren.qba.annotations.QueryEq;
+import com.beren.qba.annotations.QueryGreaterThan;
 import com.beren.qba.annotations.QueryIs;
+import com.beren.qba.annotations.QueryLessThan;
 import com.beren.qba.annotations.QueryOneOf;
 import com.beren.qba.annotations.QueryRefersTo;
 import com.beren.qba.annotations.QueryStartsWith;
@@ -29,6 +32,10 @@ public class MailSearchDTO
   private Long id;
   @QueryOneOf("id")
   private Collection<Long> ids;
+  @QueryGreaterThan("date")
+  private Date fromDate;
+  @QueryLessThan(value = "date", isInclusive = true)
+  private Date toDateInclusive;
 
   public void setFrom(String from)
   {
@@ -67,6 +74,17 @@ public class MailSearchDTO
   {
     this.ids = Arrays.asList(ids);
 
+  }
+
+  public void setFromDate(Date date)
+  {
+    this.fromDate = date;
+
+  }
+
+  public void setToDateInclusive(Date date)
+  {
+    this.toDateInclusive = date;
   }
 
 }

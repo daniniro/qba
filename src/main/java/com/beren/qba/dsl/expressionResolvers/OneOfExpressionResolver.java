@@ -35,6 +35,7 @@ public class OneOfExpressionResolver implements ExpressionResolver
                                                        Collection value,
                                                        Class<?> componentType)
   {
+    // TODO Too many if! Evaluate strategy and visitor pattern
     if (Number.class.isAssignableFrom(componentType))
       return Optional.of(entityPath.getArray(currentAnnotation.value(), Number[].class)
           .in((Collection<? extends Number[]>) value));

@@ -4,8 +4,12 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,6 +46,8 @@ public class QueryGeneratorIT
   private PathBuilder<Mail> entityPath;
   private JPAQuery<Mail> baseQuery;
 
+  private List<Mail> defaultMails;
+
   @BeforeClass
   public static void init()
   {
@@ -55,6 +61,7 @@ public class QueryGeneratorIT
     clearDB();
     entityPath = queryGenerator.getEntityPath();
     baseQuery = new JPAQuery<Mail>(entityManager).from(entityPath);
+    defaultMails = givenDefaultMails(3);
   }
 
   @After
@@ -68,16 +75,14 @@ public class QueryGeneratorIT
   public void whenWithoutRestrictionsSelectAll() throws Exception
   {
     Object dto = givenValidDTO();
-    Collection<Mail> entities = givenEntities(3);
     Predicate restrictions = whenAskForQuery(dto);
-    thenAllEntitiesAreFound(restrictions, entities.toArray(new Mail[entities.size()]));
+    thenAllEntitiesAreFound(restrictions, defaultMails.toArray(new Mail[defaultMails.size()]));
   }
 
   @Test
   public void whenEqRestrictionSelectEq() throws Exception
   {
-    List<Mail> entities = givenEntities(3);
-    Mail first = entities.get(0);
+    Mail first = defaultMails.get(0);
     MailSearchDTO dto = givenSearchByFrom(first.getFrom());
     Predicate restrictions = whenAskForQuery(dto);
     thenAllEntitiesAreFound(restrictions, first);
@@ -86,8 +91,7 @@ public class QueryGeneratorIT
   @Test
   public void whenEqIgnoreCaseRestrictionSelectIgnoreCase() throws Exception
   {
-    List<Mail> entities = givenEntities(3);
-    Mail first = entities.get(0);
+    Mail first = defaultMails.get(0);
     String subject = changeCase(first.getSubject());
     MailSearchDTO dto = givenSearchBySubject(subject);
     Predicate restrictions = whenAskForQuery(dto);
@@ -97,8 +101,7 @@ public class QueryGeneratorIT
   @Test
   public void whenStartsWithRestrictionSelectStartsWith() throws Exception
   {
-    List<Mail> entities = givenEntities(3);
-    Mail first = entities.get(0);
+    Mail first = defaultMails.get(0);
     MailSearchDTO dto = givenSearchBySubjectStartsWith(StringUtils.substringBefore(first.getSubject(), "-"));
     Predicate restrictions = whenAskForQuery(dto);
     thenAllEntitiesAreFound(restrictions, first);
@@ -107,8 +110,8 @@ public class QueryGeneratorIT
   @Test
   public void whenEndsWithRestrictionSelectEndsWith() throws Exception
   {
-    List<Mail> entities = givenEntities(3);
-    Mail first = entities.get(0);
+
+    Mail first = defaultMails.get(0);
     MailSearchDTO dto = givenSearchBySubjectEndsWith(StringUtils.substringAfter(first.getSubject(), "-"));
     Predicate restrictions = whenAskForQuery(dto);
     thenAllEntitiesAreFound(restrictions, first);
@@ -117,8 +120,7 @@ public class QueryGeneratorIT
   @Test
   public void whenContainsRestrictionSelectContains() throws Exception
   {
-    List<Mail> entities = givenEntities(3);
-    Mail first = entities.get(0);
+    Mail first = defaultMails.get(0);
     MailSearchDTO dto = givenSearchBySubjectContains(StringUtils.substringBetween(first.getSubject(), "-"));
     Predicate restrictions = whenAskForQuery(dto);
     thenAllEntitiesAreFound(restrictions, first);
@@ -127,8 +129,8 @@ public class QueryGeneratorIT
   @Test
   public void whenIsRestrictionSelectExact() throws Exception
   {
-    List<Mail> entities = givenEntities(3);
-    Mail first = entities.get(0);
+
+    Mail first = defaultMails.get(0);
     MailSearchDTO dto = givenSearchById(first.getId());
     Predicate restrictions = whenAskForQuery(dto);
     thenAllEntitiesAreFound(restrictions, first);
@@ -137,12 +139,54 @@ public class QueryGeneratorIT
   @Test
   public void whenOneOfRestrictionSelectIn() throws Exception
   {
-    List<Mail> entities = givenEntities(3);
-    Mail first = entities.get(0);
-    Mail second = entities.get(1);
+    Mail first = defaultMails.get(0);
+    Mail second = defaultMails.get(1);
     MailSearchDTO dto = givenSearchByIds(first.getId(), second.getId());
     Predicate restrictions = whenAskForQuery(dto);
     thenAllEntitiesAreFound(restrictions, first, second);
+  }
+
+  @Test
+  public void whenGreaterThanRestrictionSelectGreaterThan() throws Exception
+  {
+    Mail tomorrowMail = givenTomorrowMail();
+    MailSearchDTO dto = givenSearchByDateFrom(Calendar.getInstance().getTime());
+    Predicate restrictions = whenAskForQuery(dto);
+    thenAllEntitiesAreFound(restrictions, tomorrowMail);
+  }
+
+  @Test
+  public void whenLessThanRestrictionSelectGreaterThan() throws Exception
+  {
+    Mail tomorrowMail = givenYesterdayMail();
+    MailSearchDTO dto = givenSearchByDateToInclusive(Date
+        .from(LocalDateTime.now().minusDays(1).atZone(ZoneId.systemDefault()).toInstant()));
+    Predicate restrictions = whenAskForQuery(dto);
+    thenAllEntitiesAreFound(restrictions, tomorrowMail);
+  }
+
+  // TODO rise coverage of OneOfRestriction
+  // TODO rise coverage of GreaterThanRestriction
+  // TODO rise coverage of LessThanRestriction
+  // TODO add support for @QueryFetch
+  // TODO add support for @QueryExists
+  // TODO add support for @QueryAllOf
+  // TODO add support for @QueryIsNull and @QueryIsNotNull
+  // TODO add support for @QueryNot
+  // TODO this class should be splitted
+
+  private MailSearchDTO givenSearchByDateToInclusive(Date date)
+  {
+    MailSearchDTO dto = givenValidDTO();
+    dto.setToDateInclusive(date);
+    return dto;
+  }
+
+  private MailSearchDTO givenSearchByDateFrom(Date date)
+  {
+    MailSearchDTO dto = givenValidDTO();
+    dto.setFromDate(date);
+    return dto;
   }
 
   private MailSearchDTO givenSearchByIds(Long... ids)
@@ -199,17 +243,32 @@ public class QueryGeneratorIT
     return new MailSearchDTO();
   }
 
-  private List<Mail> givenEntities(int n)
+  private Mail givenTomorrowMail()
   {
-    List<Mail> inserted = new ArrayList<>();
+    Mail tomorrowMail = createRandomMail();
+    tomorrowMail.setDate(Date
+        .from(LocalDateTime.now().plusDays(1).atZone(ZoneId.systemDefault()).toInstant()));
+    tomorrowMail = givenMails(tomorrowMail)[0];
+    return tomorrowMail;
+  }
+
+  private Mail givenYesterdayMail()
+  {
+    Mail tomorrowMail = createRandomMail();
+    tomorrowMail.setDate(Date
+        .from(LocalDateTime.now().minusDays(1).atZone(ZoneId.systemDefault()).toInstant()));
+    tomorrowMail = givenMails(tomorrowMail)[0];
+    return tomorrowMail;
+  }
+
+  private Mail[] givenMails(Mail... mails)
+  {
     try
     {
       entityManager.getTransaction().begin();
-      for (int i = 0; i < n; i++)
+      for (Mail mail : mails)
       {
-        Mail randomMail = createRandomMail();
-        entityManager.persist(randomMail);
-        inserted.add(randomMail);
+        entityManager.persist(mail);
       }
       entityManager.getTransaction().commit();
     }
@@ -217,6 +276,15 @@ public class QueryGeneratorIT
     {
       entityManager.getTransaction().rollback();
     }
+    return mails;
+  }
+
+  private List<Mail> givenDefaultMails(int n)
+  {
+    List<Mail> inserted = new ArrayList<>();
+    for (int i = 0; i < n; i++)
+      inserted.add(createRandomMail());
+    inserted = Arrays.asList(givenMails(inserted.toArray(new Mail[inserted.size()])));
     return inserted;
   }
 
@@ -237,6 +305,7 @@ public class QueryGeneratorIT
   {
     Mail randomEntity = new Mail(UUID.randomUUID().toString());
     randomEntity.setSubject(UUID.randomUUID().toString());
+    randomEntity.setDate(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
     return randomEntity;
   }
 

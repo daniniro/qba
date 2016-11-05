@@ -11,13 +11,17 @@ import com.beren.qba.QueryGenerator;
 import com.beren.qba.annotations.QueryContains;
 import com.beren.qba.annotations.QueryEndsWith;
 import com.beren.qba.annotations.QueryEq;
+import com.beren.qba.annotations.QueryGreaterThan;
 import com.beren.qba.annotations.QueryIs;
+import com.beren.qba.annotations.QueryLessThan;
 import com.beren.qba.annotations.QueryOneOf;
 import com.beren.qba.annotations.QueryStartsWith;
 import com.beren.qba.dsl.expressionResolvers.ContainsExpressionResolver;
 import com.beren.qba.dsl.expressionResolvers.EndsWithExpressionResolver;
 import com.beren.qba.dsl.expressionResolvers.EqExpressionResolver;
+import com.beren.qba.dsl.expressionResolvers.GreaterThanExpressionResolver;
 import com.beren.qba.dsl.expressionResolvers.IsExpressionResolver;
+import com.beren.qba.dsl.expressionResolvers.LessThanExpressionResolver;
 import com.beren.qba.dsl.expressionResolvers.OneOfExpressionResolver;
 import com.beren.qba.dsl.expressionResolvers.StartsWithExpressionResolver;
 import com.beren.qba.dsl.validators.DtoValidator;
@@ -36,15 +40,9 @@ public class DslQueryGenerator<T> implements QueryGenerator<T>
 
   public DslQueryGenerator(Class<?> actualClass)
   {
+    // TODO extract actualclass via reflection
     this(actualClass, null);
     defaultExpressionMap();
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public PathBuilder<T> getEntityPath()
-  {
-    return new PathBuilder<>((Class<? extends T>) actualClass, "entity");
   }
 
   public DslQueryGenerator(Class<?> actualClass,
@@ -54,6 +52,13 @@ public class DslQueryGenerator<T> implements QueryGenerator<T>
     this.actualClass = actualClass;
     this.expressionMap = expressionMap;
     dtoValidator = new SimpleDtoValidator(actualClass);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public PathBuilder<T> getEntityPath()
+  {
+    return new PathBuilder<>((Class<? extends T>) actualClass, "entity");
   }
 
   @Override
@@ -84,6 +89,7 @@ public class DslQueryGenerator<T> implements QueryGenerator<T>
 
   private void defaultExpressionMap()
   {
+    // TODO make this map a new type and create a builder
     expressionMap = new HashMap<>();
     expressionMap.put(QueryEq.class, new EqExpressionResolver());
     expressionMap.put(QueryStartsWith.class, new StartsWithExpressionResolver());
@@ -91,6 +97,8 @@ public class DslQueryGenerator<T> implements QueryGenerator<T>
     expressionMap.put(QueryContains.class, new ContainsExpressionResolver());
     expressionMap.put(QueryIs.class, new IsExpressionResolver());
     expressionMap.put(QueryOneOf.class, new OneOfExpressionResolver());
+    expressionMap.put(QueryGreaterThan.class, new GreaterThanExpressionResolver());
+    expressionMap.put(QueryLessThan.class, new LessThanExpressionResolver());
   }
 
   private Optional<Class<? extends Annotation>> getQueryAnnotation(Field field)
