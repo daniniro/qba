@@ -32,92 +32,82 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.PathBuilder;
 
-public class DslQueryGenerator<T> implements QueryGenerator<T>
-{
+public class DslQueryGenerator<T> implements QueryGenerator<T> {
 
-  private Class<?> actualClass;
-  private DtoValidator dtoValidator;
-  private Map<Class<? extends Annotation>, ExpressionResolver> expressionMap;
+	private Class<?> actualClass;
+	private DtoValidator dtoValidator;
+	private Map<Class<? extends Annotation>, ExpressionResolver> expressionMap;
 
-  public DslQueryGenerator(Class<?> actualClass)
-  {
-    // TODO extract actualclass via reflection
-    this(actualClass, null);
-    defaultExpressionMap();
-  }
+	public DslQueryGenerator(Class<?> actualClass) {
+		// TODO extract actualclass via reflection
+		this(actualClass, null);
+		defaultExpressionMap();
+	}
 
-  public DslQueryGenerator(Class<?> actualClass,
-      Map<Class<? extends Annotation>, ExpressionResolver> expressionMap)
-  {
-    super();
-    this.actualClass = actualClass;
-    this.expressionMap = expressionMap;
-    dtoValidator = new SimpleDtoValidator(actualClass);
-  }
+	public DslQueryGenerator(Class<?> actualClass, Map<Class<? extends Annotation>, ExpressionResolver> expressionMap) {
+		super();
+		this.actualClass = actualClass;
+		this.expressionMap = expressionMap;
+		dtoValidator = new SimpleDtoValidator(actualClass);
+	}
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public PathBuilder<T> getEntityPath()
-  {
-    return new PathBuilder<>((Class<? extends T>) actualClass, "entity");
-  }
+	@Override
+	@SuppressWarnings("unchecked")
+	public PathBuilder<T> getEntityPath(String entityName) {
+		return new PathBuilder<>((Class<? extends T>) actualClass, entityName);
+	}
 
-  @Override
-  public Predicate createQuery(Object dto, PathBuilder<T> entityPath)
-  {
-    validateDTO(dto);
-    BooleanBuilder expression = new BooleanBuilder();
-    try
-    {
-      for (Field field : dto.getClass().getDeclaredFields())
-      {
-        Optional<Class<? extends Annotation>> isAnnotated;
-        if ((isAnnotated = getQueryAnnotation(field)).isPresent())
-        {
-          field.setAccessible(true);
-          Class<? extends Annotation> annotation = isAnnotated.get();
-          if (field.get(dto) != null)
-            expression.and(expressionMap.get(annotation).getRestriction(dto, entityPath, field));
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      throw new UnexpectedQueryGenerationError(e);
-    }
-    return expression;
-  }
+	@Override
+	public PathBuilder<T> getEntityPath() {
+		return getEntityPath("entity");
+	}
 
-  private void defaultExpressionMap()
-  {
-    // TODO make this map a new type and create a builder
-    expressionMap = new HashMap<>();
-    expressionMap.put(QueryEq.class, new EqExpressionResolver());
-    expressionMap.put(QueryStartsWith.class, new StartsWithExpressionResolver());
-    expressionMap.put(QueryEndsWith.class, new EndsWithExpressionResolver());
-    expressionMap.put(QueryContains.class, new ContainsExpressionResolver());
-    expressionMap.put(QueryIs.class, new IsExpressionResolver());
-    expressionMap.put(QueryOneOf.class, new OneOfExpressionResolver());
-    expressionMap.put(QueryGreaterThan.class, new GreaterThanExpressionResolver());
-    expressionMap.put(QueryLessThan.class, new LessThanExpressionResolver());
-  }
+	@Override
+	public Predicate createQuery(Object dto, PathBuilder<T> entityPath) {
+		validateDTO(dto);
+		BooleanBuilder expression = new BooleanBuilder();
+		try {
+			for (Field field : dto.getClass().getDeclaredFields()) {
+				Optional<Class<? extends Annotation>> isAnnotated;
+				if ((isAnnotated = getQueryAnnotation(field)).isPresent()) {
+					field.setAccessible(true);
+					Class<? extends Annotation> annotation = isAnnotated.get();
+					if (field.get(dto) != null)
+						expression.and(expressionMap.get(annotation).getRestriction(dto, entityPath, field));
+				}
+			}
+		} catch (Exception e) {
+			throw new UnexpectedQueryGenerationError(e);
+		}
+		return expression;
+	}
 
-  private Optional<Class<? extends Annotation>> getQueryAnnotation(Field field)
-  {
-    for (Class<? extends Annotation> annotation : supportedAnnotations())
-      if (field.isAnnotationPresent(annotation))
-        return Optional.of(annotation);
-    return Optional.empty();
-  }
+	private void defaultExpressionMap() {
+		// TODO make this map a new type and create a builder
+		expressionMap = new HashMap<>();
+		expressionMap.put(QueryEq.class, new EqExpressionResolver());
+		expressionMap.put(QueryStartsWith.class, new StartsWithExpressionResolver());
+		expressionMap.put(QueryEndsWith.class, new EndsWithExpressionResolver());
+		expressionMap.put(QueryContains.class, new ContainsExpressionResolver());
+		expressionMap.put(QueryIs.class, new IsExpressionResolver());
+		expressionMap.put(QueryOneOf.class, new OneOfExpressionResolver());
+		expressionMap.put(QueryGreaterThan.class, new GreaterThanExpressionResolver());
+		expressionMap.put(QueryLessThan.class, new LessThanExpressionResolver());
+	}
 
-  private Collection<Class<? extends Annotation>> supportedAnnotations()
-  {
-    return expressionMap.keySet();
-  }
+	private Optional<Class<? extends Annotation>> getQueryAnnotation(Field field) {
+		for (Class<? extends Annotation> annotation : supportedAnnotations())
+			if (field.isAnnotationPresent(annotation))
+				return Optional.of(annotation);
+		return Optional.empty();
+	}
 
-  private void validateDTO(Object dto)
-  {
-    dtoValidator.validate(dto);
-  }
+	private Collection<Class<? extends Annotation>> supportedAnnotations() {
+		return expressionMap.keySet();
+	}
+
+	private void validateDTO(Object dto) {
+		dtoValidator.validate(dto);
+	}
 
 }
