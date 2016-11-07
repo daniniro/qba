@@ -165,11 +165,13 @@ public class QueryGeneratorIT {
 	// TODO rise coverage of GreaterThanRestriction
 	// TODO rise coverage of LessThanRestriction
 	// TODO add support for @QueryFetch
+	// TODO add support for @QueryJoin
 	// TODO add support for @QueryExists
 	// TODO add support for @QueryAllOf
 	// TODO add support for @QueryIsNull and @QueryIsNotNull
 	// TODO add support for @QueryNot
 	// TODO this class should be splitted
+	// TODO add checks annotated types validation
 	private MailSearchDTO givenSearchByMoreRestrictions(String subject, Date date) {
 		MailSearchDTO dto = givenValidDTO();
 		dto.setSubjectStart(StringUtils.substringBefore(subject, "-") + "-");
