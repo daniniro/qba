@@ -8,19 +8,29 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ArrayExpressionFactory
+import com.beren.qba.dsl.utils.PackageScanner;
+
+@SuppressWarnings("unchecked")
+public class ArrayExpressionResolverFactory
 {
-  private static final Logger logger = LoggerFactory.getLogger(ArrayExpressionFactory.class);
-  private static Map<Class<?>, ArrayExpressionResolver> map;
+  private static final String BASE_PACKAGE = "com.beren";
+  private static final Logger logger = LoggerFactory.getLogger(ArrayExpressionResolverFactory.class);
+  private static Map<Class<?>, ArrayExpressionResolver> map = new HashMap<>();
 
   static
   {
-    map = new HashMap<>();
-    registerClass(NumericArrayExpressionResolver.class);
-    registerClass(DateArrayExpressionResolver.class);
-    registerClass(CalendarArrayExpressionResolver.class);
-    registerClass(TemporalArrayExpressionResolver.class);
-    registerClass(StringArrayExpressionResolver.class);
+    for (Class<?> clazz : findDescendantsClasses(ArrayExpressionResolver.class))
+      registerClass((Class<? extends ArrayExpressionResolver>) clazz);
+  }
+
+  public static boolean existsArrayExpressionResolverForClass(Class<?> componentType)
+  {
+    return !findCompatibleClasses(componentType).isEmpty();
+  }
+
+  public static ArrayExpressionResolver getArrayExpressionResolver(Class<?> componentType)
+  {
+    return map.get(firstCompatibleClass(componentType));
   }
 
   private static void registerClass(Class<? extends ArrayExpressionResolver> clazz)
@@ -36,14 +46,10 @@ public class ArrayExpressionFactory
     }
   }
 
-  public static boolean existsArrayExpressionResolverForClass(Class<?> componentType)
+  private static List<Class<?>> findDescendantsClasses(Class<?> ancestor)
   {
-    return !findCompatibleClasses(componentType).isEmpty();
-  }
-
-  public static ArrayExpressionResolver getArrayExpressionResolver(Class<?> componentType)
-  {
-    return map.get(firstCompatibleClass(componentType));
+    return PackageScanner
+        .findDescendantsClasses(BASE_PACKAGE, ancestor);
   }
 
   private static Class<?> firstCompatibleClass(Class<?> componentType)

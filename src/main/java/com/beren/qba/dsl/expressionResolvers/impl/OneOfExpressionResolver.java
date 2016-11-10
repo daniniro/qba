@@ -43,9 +43,9 @@ public class OneOfExpressionResolver implements ExpressionResolver
                                                        Collection value,
                                                        Class<?> componentType)
   {
-    if (ArrayExpressionFactory.existsArrayExpressionResolverForClass(componentType))
+    if (ArrayExpressionResolverFactory.existsArrayExpressionResolverForClass(componentType))
       return Optional
-          .of(ArrayExpressionFactory.getArrayExpressionResolver(componentType)
+          .of(ArrayExpressionResolverFactory.getArrayExpressionResolver(componentType)
               .create(entityPath, currentAnnotation.value(), value));
     return Optional.empty();
   }
