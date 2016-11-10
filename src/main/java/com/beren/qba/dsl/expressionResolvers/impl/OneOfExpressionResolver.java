@@ -1,11 +1,8 @@
 package com.beren.qba.dsl.expressionResolvers.impl;
 
 import java.lang.reflect.Field;
-import java.time.temporal.Temporal;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Optional;
 
 import com.beren.qba.annotations.QueryOneOf;
@@ -17,6 +14,7 @@ import com.querydsl.core.types.dsl.PathBuilder;
 @SuppressWarnings("rawtypes")
 public class OneOfExpressionResolver implements ExpressionResolver {
 	private static final Class<QueryOneOf> annotation = QueryOneOf.class;
+	private ArrayExpressionMap arrayExpressionsMap;
 
 	@Override
 	public Predicate getRestriction(Object dto, PathBuilder<?> entityPath, Field field) throws Exception {
@@ -38,26 +36,11 @@ public class OneOfExpressionResolver implements ExpressionResolver {
 		return value;
 	}
 
-	@SuppressWarnings("unchecked")
 	private Optional<BooleanExpression> chooseExpression(PathBuilder<?> entityPath, QueryOneOf currentAnnotation,
 			Collection value, Class<?> componentType) {
-		// TODO Too many if! Evaluate strategy and visitor pattern
-		if (Number.class.isAssignableFrom(componentType))
-			return Optional.of(entityPath.getArray(currentAnnotation.value(), Number[].class)
-					.in((Collection<? extends Number[]>) value));
-		else if (String.class.isAssignableFrom(componentType))
-			return Optional.of(entityPath.getArray(currentAnnotation.value(), String[].class)
-					.in((Collection<? extends String[]>) value));
-		else if (Temporal.class.isAssignableFrom(componentType))
-			return Optional.of(entityPath.getArray(currentAnnotation.value(), Temporal[].class)
-					.in((Collection<? extends Temporal[]>) value));
-		else if (Calendar.class.isAssignableFrom(componentType))
-			return Optional.of(entityPath.getArray(currentAnnotation.value(), Calendar[].class)
-					.in((Collection<? extends Calendar[]>) value));
-		else if (Date.class.isAssignableFrom(componentType))
-			return Optional.of(entityPath.getArray(currentAnnotation.value(), Date[].class)
-					.in((Collection<? extends Date[]>) value));
-
+		if (arrayExpressionsMap.containsCompatibleKey(componentType))
+			return Optional
+					.of(arrayExpressionsMap.get(componentType).create(entityPath, currentAnnotation.value(), value));
 		return Optional.empty();
 	}
 
